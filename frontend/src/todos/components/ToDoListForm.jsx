@@ -4,6 +4,8 @@ import { TextField, Card, CardContent, CardActions, Button, Typography} from '@m
 import DeleteIcon from '@material-ui/icons/Delete'
 import AddIcon from '@material-ui/icons/Add'
 
+import Fetch from "./fetch";
+
 const useStyles = makeStyles({
   card: {
     margin: '1rem'
@@ -25,49 +27,54 @@ const useStyles = makeStyles({
   }
 })
 
-export const ToDoListForm = ({ toDoList, saveToDoList }) => {
+// || todo : move this to credentials file
+// Some useful variables
+const baseUrl = "http://localhost:3001";
+
+export const ToDoListForm = ({ toDoListId, toDoList, saveToDoList = f => f }) => {
   const classes = useStyles()
-  const [todos, setTodos] = useState(toDoList.todos)
+  // const [todos, setTodos] = useState(toDoList.todos)
 
   const handleSubmit = event => {
     event.preventDefault()
-    saveToDoList(toDoList.id, { todos })
+    // saveToDoList(toDoList.id, { todos })
   }
 
-  return (
+
+  const renderTodoList = (data) =>  (
     <Card className={classes.card}>
       <CardContent>
         <Typography component='h2'>
-          {toDoList.title}
+          {data.title}
         </Typography>
         <form onSubmit={handleSubmit} className={classes.form}>
-          {todos.map((name, index) => (
+          {data.todos.map((todo, index) => (
             <div key={index} className={classes.todoLine}>
               <Typography className={classes.standardSpace} variant='h6'>
                 {index + 1}
               </Typography>
               <TextField
                 label='What to do?'
-                value={name}
-                onChange={event => {
-                  setTodos([ // immutable update
-                    ...todos.slice(0, index),
-                    event.target.value,
-                    ...todos.slice(index + 1)
-                  ])
-                }}
+                value={todo.title}
+                // onChange={event => {
+                //   setTodos([ // immutable update
+                //     ...todos.slice(0, index),
+                //     event.target.value,
+                //     ...todos.slice(index + 1)
+                //   ])
+                // }}
                 className={classes.textField}
               />
               <Button
                 size='small'
                 color='secondary'
                 className={classes.standardSpace}
-                onClick={() => {
-                  setTodos([ // immutable delete
-                    ...todos.slice(0, index),
-                    ...todos.slice(index + 1)
-                  ])
-                }}
+                // onClick={() => {
+                //   setTodos([ // immutable delete
+                //     ...todos.slice(0, index),
+                //     ...todos.slice(index + 1)
+                //   ])
+                // }}
               >
                 <DeleteIcon />
               </Button>
@@ -77,9 +84,9 @@ export const ToDoListForm = ({ toDoList, saveToDoList }) => {
             <Button
               type='button'
               color='primary'
-              onClick={() => {
-                setTodos([...todos, ''])
-              }}
+              // onClick={() => {
+              //   setTodos([...todos, ''])
+              // }}
             >
               Add Todo <AddIcon />
             </Button>
@@ -90,5 +97,13 @@ export const ToDoListForm = ({ toDoList, saveToDoList }) => {
         </form>
       </CardContent>
     </Card>
+  )
+
+  return (
+    <Fetch 
+      url={`${baseUrl}/api/todo-list/${toDoListId}`}
+      renderSuccess={renderTodoList}
+      renderError={(error) => <p>{error.message}</p>}
+      />
   )
 }

@@ -15,4 +15,9 @@ router.delete("/todo-list/:id", handlers.deleteTodoListById);
 router.post("/todo-list", handlers.createTodoList);
 router.put("/todo-list/:id", handlers.updateTodoListById);
 
+// api routes related to Todo
+router.post("/todo/:todoListId", handlers.createTodo);
+router.put("/todo/:id", handlers.updateTodoById);
+router.delete("/todo/:todoId/:todoListId", handlers.deleteTodoById);
+
 module.exports = router;

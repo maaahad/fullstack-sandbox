@@ -9,6 +9,9 @@ import ReceiptIcon from '@material-ui/icons/Receipt'
 import Typography from '@material-ui/core/Typography'
 import { ToDoListForm } from './ToDoListForm'
 
+// in-house 
+import Fetch from "./fetch";
+
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms))
 
 const getPersonalTodos = () => {
@@ -26,17 +29,26 @@ const getPersonalTodos = () => {
   }))
 }
 
+// || todo : move this to credentials file
+// Some useful variables
+const baseUrl = "http://localhost:3001";
+
+
+
+
 export const ToDoLists = ({ style }) => {
-  const [toDoLists, setToDoLists] = useState({})
+  // const [toDoLists, setToDoLists] = useState({})
   const [activeList, setActiveList] = useState()
 
-  useEffect(() => {
-    getPersonalTodos()
-      .then(setToDoLists)
-  }, [])
+  // useEffect(() => {
+  //   getPersonalTodos()
+  //     .then(setToDoLists)
+  // }, [])
 
-  if (!Object.keys(toDoLists).length) return null
-  return <Fragment>
+  // console.log(activeList);
+
+  const renderTodoLists = (data) => {
+    return (
     <Card style={style}>
       <CardContent>
         <Typography
@@ -45,20 +57,39 @@ export const ToDoLists = ({ style }) => {
           My ToDo Lists
         </Typography>
         <List>
-          {Object.keys(toDoLists).map((key) => <ListItem
-            key={key}
+
+          {data.map((todolist) => <ListItem
+            key={todolist._id}
             button
-            onClick={() => setActiveList(key)}
+            onClick={() => setActiveList(todolist._id)}
           >
             <ListItemIcon>
               <ReceiptIcon />
             </ListItemIcon>
-            <ListItemText primary={toDoLists[key].title} />
+            <ListItemText primary={todolist.title} />
           </ListItem>)}
         </List>
       </CardContent>
     </Card>
-    {toDoLists[activeList] && <ToDoListForm
+    )
+  }
+
+  const renderTodoListForm = (data) => (
+    <p>{data.todos.[0].title}</p>
+  );
+
+  // if (!Object.keys(toDoLists).length) return null
+  return <Fragment>
+    <Fetch 
+      url={`${baseUrl}/api/todo-lists`}
+      renderSuccess={renderTodoLists}
+      renderError={(error) => <p>{error.message}</p>}
+    />
+    {
+      activeList && <ToDoListForm toDoListId={activeList}/>
+    }
+
+    {/* {toDoLists[activeList] && <ToDoListForm
       key={activeList} // use key to make React recreate component to reset internal state
       toDoList={toDoLists[activeList]}
       saveToDoList={(id, { todos }) => {
@@ -68,6 +99,6 @@ export const ToDoLists = ({ style }) => {
           [id]: { ...listToUpdate, todos }
         })
       }}
-    />}
+    />} */}
   </Fragment>
 }

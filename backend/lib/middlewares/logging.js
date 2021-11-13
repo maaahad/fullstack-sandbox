@@ -12,10 +12,13 @@ module.exports = (app) => {
           app.use(morgan("dev"));
           break;
         case "production":
-          const stream = fs.createWriteStream(process.cwd() + "/access.log", {
-            flags: "a",
-          });
-          app.use(morgan("combined", { stream }));
+          {
+            const stream = fs.createWriteStream(process.cwd() + "/access.log", {
+              flags: "a",
+            });
+            app.use(morgan("combined", { stream }));
+          }
+          break;
       }
     },
   };

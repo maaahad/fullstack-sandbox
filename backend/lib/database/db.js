@@ -36,6 +36,7 @@ db.once("open", () => {
 //testing model
 // || todo : remove
 
+/* eslint-disable no-unused-vars */
 async function testingModel() {
   const todo = new Todo({
     title: "Testing ToDo",
@@ -51,7 +52,7 @@ async function testingModel() {
   await todoList.save();
   console.log(todo, "\n", todoList);
 }
-
+/* eslint-enable no-unused-vars */
 // testingModel();
 
 // ----------------------------------------------------------- //
@@ -83,5 +84,42 @@ module.exports = {
     }
   },
 
+  // a method to add a Todo to a TodoList
+  addTodoToTodoList: async (todoListId, todoId) =>
+    await TodoList.findByIdAndUpdate(
+      todoListId,
+      {
+        $push: { todos: todoId },
+      },
+      {
+        new: true,
+      }
+    ),
+
+  // a method to remove a Todo from a TodoList
+  deleteTodoFromTodoList: async (todoListId, todoId) =>
+    await TodoList.findByIdAndUpdate(
+      todoListId,
+      {
+        $pull: { todos: todoId },
+      },
+      {
+        new: true,
+      }
+    ),
+
   // db access method  related to Todo
+  createTodo: async (title, due) => await Todo.create({ title, due }),
+  deleteTodoById: async (id) => await Todo.findByIdAndDelete(id),
+  updateTodoById: async (id, title, due) =>
+    await Todo.findByIdAndUpdate(
+      id,
+      {
+        title,
+        due,
+      },
+      {
+        new: true,
+      }
+    ),
 };

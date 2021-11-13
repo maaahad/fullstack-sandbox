@@ -1,5 +1,9 @@
+// ----------------------------------------------------------- //
+// import
 const fetch = require("isomorphic-fetch");
 
+// ----------------------------------------------------------- //
+// variables
 // base url
 const baseUrl = "http://localhost:3001";
 
@@ -16,7 +20,10 @@ const _fetch = async (method, path, body) => {
   return await res.json();
 };
 
+// || todo : move repeatative code here ...
+
 describe("API Tests", () => {
+  // TodoList
   test("/POST /api/todo-list", async () => {
     const todoList = await _fetch("post", "/api/todo-list", {
       title: "Testing TodoList",
@@ -64,6 +71,96 @@ describe("API Tests", () => {
     expect(updatedTodoList.title).toBe("Updated : Testing TodoList");
   });
 
+  // Todo
+  test("/POST /api/todo/:todoListId", async () => {
+    // first we get all todo list,
+    const todoLists = await _fetch("get", "/api/todo-lists");
+    // then we get the one with title === "Updated : Testing TodoList"
+    let testTodoList = todoLists.find(
+      (todoList) => todoList.title === "Updated : Testing TodoList"
+    );
+    // now we create a Todo
+    const testTodo = await _fetch("post", `/api/todo/${testTodoList._id}`, {
+      title: "Please Colmplete the Test First....",
+      due: new Date("2021-12-31"),
+    });
+
+    // now we get the details of testTodoList and check that the testTodo is in testTodoList
+    testTodoList = await await _fetch(
+      "get",
+      `/api/todo-list/${testTodoList._id}`
+    );
+    expect(testTodoList.todos).toEqual(
+      expect.arrayContaining([expect.objectContaining({ _id: testTodo._id })])
+    );
+  });
+
+  test("/PUT /api/todo/:id", async () => {
+    // first we get all todo list,
+    const todoLists = await _fetch("get", "/api/todo-lists");
+    // then we get the one with title === "Updated : Testing TodoList"
+    let testTodoList = todoLists.find(
+      (todoList) => todoList.title === "Updated : Testing TodoList"
+    );
+    // now we get the details of testTodoList and check that the testTodo is in testTodoList
+    testTodoList = await await _fetch(
+      "get",
+      `/api/todo-list/${testTodoList._id}`
+    );
+    // we filter out the test Todo testTodoList
+    const testTodo = testTodoList.todos.find(
+      (todo) => todo.title === "Please Colmplete the Test First...."
+    );
+    // now we update the testTodo
+    const updatedTestTodo = await _fetch("put", `/api/todo/${testTodo._id}`, {
+      title: "Updated : Please Colmplete the Test First....",
+      due: testTodo.due,
+    });
+
+    // assertions
+    expect(updatedTestTodo.title).toBe(
+      "Updated : Please Colmplete the Test First...."
+    );
+  });
+
+  test("/DELETE /api/todo/:todoId/:todoListId", async () => {
+    // first we get all todo list,
+    const todoLists = await _fetch("get", "/api/todo-lists");
+    // then we get the one with title === "Updated : Testing TodoList"
+    let testTodoList = todoLists.find(
+      (todoList) => todoList.title === "Updated : Testing TodoList"
+    );
+    // now we get the details of testTodoList and check that the testTodo is in testTodoList
+    testTodoList = await await _fetch(
+      "get",
+      `/api/todo-list/${testTodoList._id}`
+    );
+    const testTodo = testTodoList.todos.find(
+      (todo) => todo.title === "Updated : Please Colmplete the Test First...."
+    );
+
+    const deletedTodo = await _fetch(
+      "delete",
+      `/api/todo/${testTodo._id}/${testTodoList._id}`
+    );
+
+    expect(deletedTodo._id).toBe(testTodo._id);
+    // we also checked whether the todo is deleted from the corresponding TodoList
+    // re-fetch the testTodoList
+    testTodoList = await await _fetch(
+      "get",
+      `/api/todo-list/${testTodoList._id}`
+    );
+    expect(testTodoList.todos).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ _id: deletedTodo._id }),
+      ])
+    );
+  });
+
+  // test related to deletion of TodoList and Todo comes at the end
+  // To make sure that test TodoList and Todo are removed from db once
+  // test is done
   test("/DELETE /api/todo-list/:id", async () => {
     // first we get all todo list,
     const todoLists = await _fetch("get", "/api/todo-lists");
