@@ -21,7 +21,7 @@ import DateTimePicker from "@mui/lab/DateTimePicker";
 import { parseISO, formatDistanceToNow } from "date-fns";
 
 // in-house
-import { jsonFetch } from "../../hooks";
+import { useAutoSave, jsonFetch } from "../../hooks";
 
 const useStyles = makeStyles((theme) => ({
   card: {
@@ -86,36 +86,61 @@ function ToDo({
   onDeleteToDo = (f) => f,
   onToDoCompletion = (f) => f,
 }) {
-  const [_toDo, setToDo] = useState(toDo);
+  const [savingState, _toDo, error, setToDo, save] = useAutoSave("saved", toDo);
+  // const [_toDo, setToDo] = useState(toDo);
   const classes = useStyles(_toDo);
 
   const onTitleChange = (event) => {
-    jsonFetch("put", `${BASE_URL_TO_API}/todo/${_toDo._id}`, {
+    // setToDo({ ..._toDo, title: event.target.value });
+    save("put", `${BASE_URL_TO_API}/todo/${_toDo._id}`, {
       title: event.target.value,
       due: _toDo.due,
       completed: _toDo.completed,
-    }).then(setToDo);
+    });
+    // jsonFetch("put", `${BASE_URL_TO_API}/todo/${_toDo._id}`, {
+    //   title: event.target.value,
+    //   due: _toDo.due,
+    //   completed: _toDo.completed,
+    // }).then(setToDo);
   };
 
   const onCompletionCheck = (event) => {
     // we need to trigger a method from TodoLists to update existing
     // TodoList in case all todos related to this is done
-    jsonFetch("put", `${BASE_URL_TO_API}/todo/${_toDo._id}`, {
-      title: _toDo.title,
-      due: _toDo.due,
-      completed: event.target.checked,
-    })
-      .then(setToDo)
-      .then(() => onToDoCompletion());
+    save(
+      "put",
+      `${BASE_URL_TO_API}/todo/${_toDo._id}`,
+      {
+        title: _toDo.title,
+        due: _toDo.due,
+        completed: event.target.checked,
+      },
+      onToDoCompletion
+    );
+    // Need to pass completion check to parent
+    // jsonFetch("put", `${BASE_URL_TO_API}/todo/${_toDo._id}`, {
+    //   title: _toDo.title,
+    //   due: _toDo.due,
+    //   completed: event.target.checked,
+    // })
+    //   .then(setToDo)
+    //   .then(() => onToDoCompletion());
   };
 
   const onDueDateChange = (newDate) => {
-    jsonFetch("put", `${BASE_URL_TO_API}/todo/${_toDo._id}`, {
+    save("put", `${BASE_URL_TO_API}/todo/${_toDo._id}`, {
       title: _toDo.title,
       due: newDate,
       completed: _toDo.completed,
-    }).then(setToDo);
+    });
+    // jsonFetch("put", `${BASE_URL_TO_API}/todo/${_toDo._id}`, {
+    //   title: _toDo.title,
+    //   due: newDate,
+    //   completed: _toDo.completed,
+    // }).then(setToDo);
   };
+
+  console.log("saving state: ", savingState);
 
   if (!_toDo) return null;
   return (

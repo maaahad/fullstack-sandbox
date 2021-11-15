@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 
 const useFetch = (method = "get", url, body) => {
   const [data, setData] = useState();
@@ -43,4 +43,41 @@ const jsonFetch = (method = "get", url, body) => {
   });
 };
 
-export { useFetch, jsonFetch };
+const useAutoSave = (initialSavingState = "not saved", initialData = null) => {
+  const [savingState, setSavingState] = useState(initialSavingState);
+  const [data, setData] = useState(initialData);
+  const [error, setError] = useState();
+  const [timerId, setTimerId] = useState();
+
+  const save = useCallback(
+    (method = "get", url, body, propagateToParent = null) => {
+      if (!url) return;
+      if (timerId) clearTimeout(timerId);
+      setTimerId(
+        setTimeout(() => {
+          setSavingState("saving...");
+          body = typeof body === "string" ? body : JSON.stringify(body);
+          const headers = {
+            "Content-Type": "application/json",
+          };
+          fetch(url, { method, headers, body })
+            .then((res) => res.json())
+            .then((jsonData) => {
+              setData(jsonData);
+              setSavingState("saved");
+              propagateToParent && propagateToParent();
+            })
+            .catch((error) => {
+              setSavingState("not saved");
+              setError(error);
+            });
+        }, 1000)
+      );
+    },
+    [timerId]
+  );
+
+  return [savingState, data, error, setData, save];
+};
+
+export { useFetch, jsonFetch, useAutoSave };
