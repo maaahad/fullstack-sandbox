@@ -8,16 +8,13 @@ const mongoose = require("mongoose");
 // toDoList schema
 
 const todoListSchema = new mongoose.Schema({
-  title: {
-    type: String,
-    required: true,
-  },
+  title: String,
   todos: [{ type: mongoose.Schema.Types.ObjectId, ref: "Todo" }],
   // The following properties will be added if time permits
-  // completed: {
-  //   type: Boolean,
-  //   default: false,
-  // },
+  completed: {
+    type: Boolean,
+    default: false,
+  },
   // todoOverdued: {
   //   type: Boolean,
   //   default: false,

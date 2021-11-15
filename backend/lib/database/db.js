@@ -33,33 +33,44 @@ db.once("open", () => {
 });
 
 // ----------------------------------------------------------- //
-//testing model
-// || todo : remove
+// seeding intial data
+TodoList.find((error, todoLists) => {
+  if (error) return console.error(error);
+  if (todoLists.length) return;
 
-/* eslint-disable no-unused-vars */
-async function testingModel() {
-  const todo = new Todo({
-    title: "Testing ToDo",
+  // initial Todos and TodoLists
+  const firstTodoFirstList = new Todo({
+    title: "First todo of first list!",
     due: new Date("2021-12-31"),
   });
-  await todo.save();
-  console.log(todo);
 
-  const todoList = new TodoList({
-    title: "First ToDoList",
-    todos: [todo._id],
+  const firstTodoList = new TodoList({
+    title: "First List",
+    todos: [firstTodoFirstList._id],
   });
-  await todoList.save();
-  console.log(todo, "\n", todoList);
-}
-/* eslint-enable no-unused-vars */
-// testingModel();
+
+  firstTodoFirstList.save();
+  firstTodoList.save();
+
+  const firstTodoSecondList = new Todo({
+    title: "First todo of second list!",
+    due: new Date("2022-01-20"),
+  });
+
+  const secondTodoList = new TodoList({
+    title: "Second List",
+    todos: [firstTodoSecondList._id],
+  });
+
+  firstTodoSecondList.save();
+  secondTodoList.save();
+});
 
 // ----------------------------------------------------------- //
 // exposing methods from db for CRUD operations
 module.exports = {
   // db access methods related to TodoList
-  getAllTodoList: async () => await TodoList.find({}, "-todos"),
+  getAllTodoList: async () => await TodoList.find({}).populate("todos"),
   getTodoListById: async (id) => await TodoList.findById(id).populate("todos"),
   deleteTodoListById: async (id) => await TodoList.findByIdAndDelete(id),
   // initially all TodoList have no todos
@@ -94,7 +105,7 @@ module.exports = {
       {
         new: true,
       }
-    ),
+    ).populate("todos"),
 
   // a method to remove a Todo from a TodoList
   deleteTodoFromTodoList: async (todoListId, todoId) =>
@@ -106,20 +117,43 @@ module.exports = {
       {
         new: true,
       }
-    ),
+    ).populate("todos"),
 
   // db access method  related to Todo
   createTodo: async (title, due) => await Todo.create({ title, due }),
   deleteTodoById: async (id) => await Todo.findByIdAndDelete(id),
-  updateTodoById: async (id, title, due) =>
-    await Todo.findByIdAndUpdate(
+  updateTodoById: async (id, { title, due, completed }) => {
+    // in case completed, we need to update the completed property of
+    // corresponding todolist
+    const updatedTodo = await Todo.findByIdAndUpdate(
       id,
       {
         title,
         due,
+        completed,
       },
       {
         new: true,
       }
-    ),
+    );
+
+    // in case completed, we need to update the completed property of
+    // corresponding todolist
+    const correspondingTodoList = await TodoList.findOne({
+      todos: { $in: [updatedTodo._id] },
+    }).populate("todos");
+
+    if (correspondingTodoList.todos.every((todo) => todo.completed)) {
+      await TodoList.findByIdAndUpdate(correspondingTodoList._id, {
+        completed: true,
+      });
+    } else {
+      correspondingTodoList.completed &&
+        (await TodoList.findByIdAndUpdate(correspondingTodoList._id, {
+          completed: false,
+        }));
+    }
+
+    return updatedTodo;
+  },
 };
