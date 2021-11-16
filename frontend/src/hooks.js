@@ -43,7 +43,7 @@ const jsonFetch = (method = "get", url, body) => {
   });
 };
 
-const useAutoSave = (initialSavingState = "not saved", initialData = null) => {
+const useAutoSave = (initialSavingState = "Not saved", initialData = null) => {
   const [savingState, setSavingState] = useState(initialSavingState);
   const [data, setData] = useState(initialData);
   const [error, setError] = useState();
@@ -55,7 +55,7 @@ const useAutoSave = (initialSavingState = "not saved", initialData = null) => {
       if (timerId) clearTimeout(timerId);
       setTimerId(
         setTimeout(() => {
-          setSavingState("saving...");
+          setSavingState("Saving...");
           body = typeof body === "string" ? body : JSON.stringify(body);
           const headers = {
             "Content-Type": "application/json",
@@ -64,11 +64,11 @@ const useAutoSave = (initialSavingState = "not saved", initialData = null) => {
             .then((res) => res.json())
             .then((jsonData) => {
               setData(jsonData);
-              setSavingState("saved");
+              setSavingState("Saved to DB");
               propagateToParent && propagateToParent();
             })
             .catch((error) => {
-              setSavingState("not saved");
+              setSavingState("Not saved");
               setError(error);
             });
         }, 1000)

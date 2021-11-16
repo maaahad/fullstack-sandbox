@@ -96,28 +96,65 @@ module.exports = {
   },
 
   // a method to add a Todo to a TodoList
-  addTodoToTodoList: async (todoListId, todoId) =>
-    await TodoList.findByIdAndUpdate(
+  addTodoToTodoList: async (todoListId, todo) => {
+    const updatedTodoList = await TodoList.findByIdAndUpdate(
       todoListId,
       {
-        $push: { todos: todoId },
+        $push: { todos: todo._id },
       },
       {
         new: true,
       }
-    ).populate("todos"),
+    ).populate("todos");
+
+    // every new todo add will have not completed initially
+    if (updatedTodoList.completed) {
+      return await TodoList.findByIdAndUpdate(
+        updatedTodoList._id,
+        {
+          completed: false,
+        },
+        {
+          new: true,
+        }
+      ).populate("todos");
+    }
+
+    return updatedTodoList;
+  },
 
   // a method to remove a Todo from a TodoList
-  deleteTodoFromTodoList: async (todoListId, todoId) =>
-    await TodoList.findByIdAndUpdate(
+  deleteTodoFromTodoList: async (todoListId, todo) => {
+    const updatedTodoList = await TodoList.findByIdAndUpdate(
       todoListId,
       {
-        $pull: { todos: todoId },
+        $pull: { todos: todo._id },
       },
       {
         new: true,
       }
-    ).populate("todos"),
+    ).populate("todos");
+
+    // if current todoList or deleted todo is completed, we have nothing to do
+
+    if (
+      !updatedTodoList.completed &&
+      !todo.completed &&
+      updatedTodoList.todos.every((todo) => todo.completed)
+    ) {
+      return await TodoList.findByIdAndUpdate(
+        updatedTodoList._id,
+        {
+          completed: true,
+        },
+        {
+          new: true,
+        }
+      ).populate("todos");
+    }
+
+    return updatedTodoList;
+  },
 
   // db access method  related to Todo
   createTodo: async (title, due) => await Todo.create({ title, due }),

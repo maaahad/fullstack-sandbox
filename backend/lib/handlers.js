@@ -43,7 +43,7 @@ module.exports = {
       todo._id
     );
     // We return the updated todos list
-    res.status(200).json(updateTodoList.todos);
+    res.status(200).json(updateTodoList);
   },
   deleteTodoById: async (req, res) => {
     const deletedTodo = await db.deleteTodoById(req.params.todoId);
@@ -51,11 +51,11 @@ module.exports = {
     // we need to delete the todo from the associated todoList
     const updateTodoList = await db.deleteTodoFromTodoList(
       req.params.todoListId,
-      deletedTodo._id
+      deletedTodo
     );
 
     // We return the updated todos list
-    await res.status(200).json(updateTodoList.todos);
+    await res.status(200).json(updateTodoList);
   },
   updateTodoById: async (req, res) => {
     // in this case we don't need to update the associated TodoList

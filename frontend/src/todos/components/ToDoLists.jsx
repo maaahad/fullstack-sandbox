@@ -6,8 +6,13 @@ import ListItem from "@material-ui/core/ListItem";
 import ListItemText from "@material-ui/core/ListItemText";
 import ListItemIcon from "@material-ui/core/ListItemIcon";
 import ReceiptIcon from "@material-ui/icons/Receipt";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import Chip from "@material-ui/core/Chip";
+import DoneIcon from "@mui/icons-material/Done";
+
 import Typography from "@material-ui/core/Typography";
 import { ToDoListForm } from "./ToDoListForm";
+import { useTheme } from "@mui/material/styles";
 
 // in-house
 import { jsonFetch } from "../../hooks";
@@ -38,15 +43,24 @@ const BASE_URL_TO_API = "http://localhost:3001/api";
 export const ToDoLists = ({ style }) => {
   const [toDoLists, setToDoLists] = useState([]);
   const [activeList, setActiveList] = useState();
+  const theme = useTheme();
 
   // || todo : handle loading and error state of fetch
+  console.log("activeList", activeList);
 
   useEffect(() => {
     jsonFetch("get", `${BASE_URL_TO_API}/todo-lists`).then(setToDoLists);
   }, []);
 
-  const onToDoCompletion = () => {
-    jsonFetch("get", `${BASE_URL_TO_API}/todo-lists`).then(setToDoLists);
+  const reFetchToDoLists = () => {
+    console.log("refetching todolists");
+    jsonFetch("get", `${BASE_URL_TO_API}/todo-lists`).then((toDoLists) => {
+      setToDoLists(toDoLists);
+      // we update the activeList with new data to trigger useEffect in ToDoListForm
+      setActiveList(
+        toDoLists.find((toDoList) => toDoList._id === activeList._id)
+      );
+    });
   };
 
   if (!toDoLists.length) return null;
@@ -60,14 +74,29 @@ export const ToDoLists = ({ style }) => {
               <ListItem
                 key={todolist._id}
                 button
-                onClick={() => setActiveList(todolist)}
+                onClick={() => setActiveList({ ...todolist })}
+                // style={{
+                //   backgroundColor: todolist.completed
+                //     ? theme.palette.primary.light
+                //     : "transparent",
+                // }}
               >
                 <ListItemIcon>
                   <ReceiptIcon />
                 </ListItemIcon>
-                <ListItemText
-                  primary={todolist.title + "  " + todolist.completed}
-                />
+                <ListItemText primary={todolist.title} />
+                {todolist.completed && (
+                  <Chip
+                    label="Completed"
+                    color="primary"
+                    size="medium"
+                    variant="outlined"
+                    icon={<CheckCircleIcon />}
+                  />
+                  // <ListItemIcon>
+                  //   <CheckCircleIcon />
+                  // </ListItemIcon>
+                )}
               </ListItem>
             ))}
           </List>
@@ -77,8 +106,9 @@ export const ToDoLists = ({ style }) => {
       {activeList && (
         <ToDoListForm
           key={activeList._id} // use key to make React recreate component to reset internal state
-          toDoList={activeList}
-          onToDoCompletion={onToDoCompletion}
+          toDoListId={activeList._id}
+          toDoListCompleted={activeList.completed}
+          reFetchToDoLists={reFetchToDoLists}
         />
       )}
     </Fragment>

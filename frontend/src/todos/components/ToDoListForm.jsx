@@ -1,40 +1,34 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { makeStyles } from "@material-ui/styles";
 import {
-  TextField,
   Card,
   CardContent,
   CardActions,
   Button,
   Typography,
-  Checkbox,
+  Chip,
 } from "@material-ui/core";
-import DeleteIcon from "@material-ui/icons/Delete";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import AddIcon from "@material-ui/icons/Add";
 
-import AdapterDateFns from "@mui/lab/AdapterDateFns";
-import LocalizationProvider from "@mui/lab/LocalizationProvider";
-import DatePicker from "@mui/lab/DatePicker";
-import DateTimePicker from "@mui/lab/DateTimePicker";
-
-// date-fns
-import { parseISO, formatDistanceToNow } from "date-fns";
-
 // in-house
-import { useAutoSave, jsonFetch } from "../../hooks";
+import ToDo from "./ToDo";
+import { jsonFetch } from "../../hooks";
 
 const useStyles = makeStyles((theme) => ({
   card: {
     margin: "1rem",
   },
-  todoLine: {
+  todolistHeader: {
     display: "flex",
+    flexFlow: "row nowrap",
     alignItems: "center",
-    color: (_toDo) => (_toDo.completed ? "green" : "red"),
-  },
-  textField: {
-    flexGrow: 1,
-    marginRight: "20px",
+    justifyContent: "flex-start",
+    marginBottom: "20px",
+    "& > * + *": {
+      marginLeft: "10px",
+      width: "auto",
+    },
   },
   standardSpace: {
     margin: "8px",
@@ -50,207 +44,93 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-// || move it to separate module
-function TimeRemaining({ timestamp }) {
-  let timeRemaining = "";
-  if (timestamp) {
-    const date = parseISO(timestamp);
-    const timeDuration = formatDistanceToNow(date);
-    timeRemaining = `${timeDuration} remaining`;
-  }
-
-  return <span>{timeRemaining}</span>;
-}
-
-function getTodosDueStatus(dueDate) {
-  let status = "";
-  if (dueDate) {
-    const today = new Date();
-    if (today > dueDate) status = "overdue";
-    else {
-      const date = parseISO(dueDate.toISOString());
-      const timeDuration = formatDistanceToNow(date);
-      status = `${timeDuration} remaining`;
-    }
-  }
-  return status;
-}
-
 // || todo : move this to credentials file
 // Some useful variables
 const BASE_URL_TO_API = "http://localhost:3001/api";
 
-function ToDo({
-  toDo,
-  index,
-  onDeleteToDo = (f) => f,
-  onToDoCompletion = (f) => f,
-}) {
-  const [savingState, _toDo, error, setToDo, save] = useAutoSave("saved", toDo);
-  // const [_toDo, setToDo] = useState(toDo);
-  const classes = useStyles(_toDo);
-
-  const onTitleChange = (event) => {
-    // setToDo({ ..._toDo, title: event.target.value });
-    save("put", `${BASE_URL_TO_API}/todo/${_toDo._id}`, {
-      title: event.target.value,
-      due: _toDo.due,
-      completed: _toDo.completed,
-    });
-    // jsonFetch("put", `${BASE_URL_TO_API}/todo/${_toDo._id}`, {
-    //   title: event.target.value,
-    //   due: _toDo.due,
-    //   completed: _toDo.completed,
-    // }).then(setToDo);
-  };
-
-  const onCompletionCheck = (event) => {
-    // we need to trigger a method from TodoLists to update existing
-    // TodoList in case all todos related to this is done
-    save(
-      "put",
-      `${BASE_URL_TO_API}/todo/${_toDo._id}`,
-      {
-        title: _toDo.title,
-        due: _toDo.due,
-        completed: event.target.checked,
-      },
-      onToDoCompletion
-    );
-    // Need to pass completion check to parent
-    // jsonFetch("put", `${BASE_URL_TO_API}/todo/${_toDo._id}`, {
-    //   title: _toDo.title,
-    //   due: _toDo.due,
-    //   completed: event.target.checked,
-    // })
-    //   .then(setToDo)
-    //   .then(() => onToDoCompletion());
-  };
-
-  const onDueDateChange = (newDate) => {
-    save("put", `${BASE_URL_TO_API}/todo/${_toDo._id}`, {
-      title: _toDo.title,
-      due: newDate,
-      completed: _toDo.completed,
-    });
-    // jsonFetch("put", `${BASE_URL_TO_API}/todo/${_toDo._id}`, {
-    //   title: _toDo.title,
-    //   due: newDate,
-    //   completed: _toDo.completed,
-    // }).then(setToDo);
-  };
-
-  console.log("saving state: ", savingState);
-
-  if (!_toDo) return null;
-  return (
-    <div key={index} className={classes.todoLine}>
-      <Checkbox
-        size="small"
-        color="primary"
-        checked={_toDo.completed}
-        onChange={onCompletionCheck}
-      />
-      <TextField
-        label="What to do?"
-        value={_toDo.title}
-        onChange={onTitleChange}
-        className={classes.textField}
-        disabled={_toDo.completed}
-      />
-      {/* here we have due date */}
-      <LocalizationProvider
-        dateAdapter={AdapterDateFns}
-        className={classes.standardSpace}
-      >
-        <DateTimePicker
-          openTo="year"
-          views={["year", "month", "day"]}
-          minDate={new Date("2021-11-01")}
-          label="Due date"
-          value={_toDo.due}
-          onChange={onDueDateChange}
-          renderInput={(params) => <TextField {...params} helperText={null} />}
-          disabled={_toDo.completed}
-        />
-      </LocalizationProvider>
-      {/* here we add information related to time remaining / over dues */}
-      <Typography
-        align="center"
-        className={classes.standardSpace}
-        variant="overline"
-        disabled={_toDo.completed}
-      >
-        {_toDo.completed
-          ? "completed"
-          : _toDo.due
-          ? getTodosDueStatus(new Date(_toDo.due))
-          : "no deadline"}
-      </Typography>
-      <Button
-        size="small"
-        color="secondary"
-        className={classes.standardSpace}
-        onClick={() => onDeleteToDo(_toDo._id)}
-      >
-        <DeleteIcon />
-      </Button>
-    </div>
-  );
-}
-
 export const ToDoListForm = ({
-  toDoList,
-  saveToDoList = (f) => f,
-  onToDoCompletion = (f) => f,
+  toDoListId,
+  toDoListCompleted,
+  reFetchToDoLists = (f) => f,
 }) => {
+  // const [todos, setTodos] = useState([...toDoList.todos]);
+  const [toDoList, setToDoList] = useState();
   const classes = useStyles();
-  const [todos, setTodos] = useState([...toDoList.todos]);
+
+  // useEffect to fetch the details of todoList
+  // we may add a dependency to trigger refetching todolist
+  useEffect(() => {
+    jsonFetch("get", `${BASE_URL_TO_API}/todo-list/${toDoListId}`).then(
+      setToDoList
+    );
+  }, [toDoListCompleted]);
 
   // || don't think we need this anymore
   // In case we add autosave functionality
-  const handleSubmit = (event) => {
-    event.preventDefault();
-    // saveToDoList(toDoList._id, { todos })
-  };
+  // const handleSubmit = (event) => {
+  //   event.preventDefault();
+  // };
 
   const addToDo = (event) => {
     jsonFetch("post", `${BASE_URL_TO_API}/todo/${toDoList._id}`, {
       title: "",
-      // date needs to come from user input
       due: null,
       completed: false,
-    }).then((todos) => setTodos([...todos]));
+    }).then((toDoList) => {
+      setToDoList(toDoList);
+      // We need to notify parent in to update the completion of this todoList
+      // This should only require if current list is completed
+      // Rethink the condition here in db
+      reFetchToDoLists();
+    });
   };
 
-  const deleteTodo = (toDoId) => {
+  const deleteTodo = (toDo) => {
     jsonFetch(
       "delete",
-      `${BASE_URL_TO_API}/todo/${toDoId}/${toDoList._id}`
-    ).then((todos) => setTodos([...todos]));
+      `${BASE_URL_TO_API}/todo/${toDo._id}/${toDoList._id}`
+    ).then((toDoList) => {
+      setToDoList(toDoList);
+      // We need to notify parent in case deleted todo was not completed
+      // Rethink the condition here in db
+      !toDo.completed && reFetchToDoLists();
+    });
   };
 
+  if (!toDoList) return null;
   return (
     <Card className={classes.card}>
       <CardContent>
-        <Typography component="h2">{toDoList.title}</Typography>
-        <form onSubmit={handleSubmit} className={classes.form}>
-          {todos.map((toDo, index) => (
+        <div className={classes.todolistHeader}>
+          <Typography component="h2">{toDoList.title}</Typography>
+          {toDoList.completed && (
+            <Chip
+              label="Completed"
+              color="primary"
+              size="small"
+              icon={<CheckCircleIcon />}
+              variant="outlined"
+            />
+            // <CheckCircleIcon size="large" color="primary" />
+          )}
+        </div>
+        <form className={classes.form}>
+          {toDoList.todos.map((toDo, index) => (
             <ToDo
               key={toDo._id}
               toDo={toDo}
               index={index}
               onDeleteToDo={deleteTodo}
-              onToDoCompletion={onToDoCompletion}
+              reFetchToDoLists={reFetchToDoLists}
             />
           ))}
           <CardActions>
             <Button type="button" color="primary" onClick={addToDo}>
               Add Todo <AddIcon />
             </Button>
-            <Button type="submit" variant="contained" color="primary">
+            {/* <Button type="submit" variant="contained" color="primary">
               Save
-            </Button>
+            </Button> */}
           </CardActions>
         </form>
       </CardContent>
