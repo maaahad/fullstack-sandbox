@@ -60,7 +60,7 @@ export const ToDoListForm = ({
     getJSON("get", `${credentials.api.BASE_URL}/todo-list/${toDoListId}`).then(
       setToDoList
     );
-  }, [toDoListCompleted]);
+  }, [toDoListCompleted, toDoListId]);
 
   const addToDo = (event) => {
     getJSON("post", `${credentials.api.BASE_URL}/todo/${toDoList._id}`, {

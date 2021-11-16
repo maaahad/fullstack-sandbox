@@ -1,14 +1,12 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { makeStyles } from "@material-ui/styles";
 import { useTheme } from "@mui/material/styles";
 import { TextField, Button, Typography, Checkbox } from "@material-ui/core";
 import DeleteIcon from "@material-ui/icons/Delete";
 import DoneIcon from "@mui/icons-material/Done";
-import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import AdapterDateFns from "@mui/lab/AdapterDateFns";
 import LocalizationProvider from "@mui/lab/LocalizationProvider";
 import DatePicker from "@mui/lab/DatePicker";
-import DateTimePicker from "@mui/lab/DateTimePicker";
 
 // date-fns for date formatting
 import { parseISO, formatDistanceToNow } from "date-fns";
@@ -50,15 +48,20 @@ const useStyles = makeStyles((theme) => ({
 // return the remaining time to finish
 function getTodosDueStatus(dueDate) {
   let status = "";
-  if (dueDate) {
-    const today = new Date();
-    if (today > dueDate) status = "overdue";
-    else {
-      const date = parseISO(dueDate.toISOString());
-      const timeDuration = formatDistanceToNow(date);
-      status = `${timeDuration} remaining`;
+  try {
+    if (dueDate) {
+      const today = new Date();
+      if (today > dueDate) status = "overdue";
+      else {
+        const date = parseISO(dueDate.toISOString());
+        const timeDuration = formatDistanceToNow(date);
+        status = `${timeDuration} remaining`;
+      }
     }
+  } catch (error) {
+    status = "no deadline";
   }
+
   return status;
 }
 
@@ -98,6 +101,14 @@ export default function ToDo({
   };
 
   const onDueDateChange = (newDate) => {
+    // try {
+    //   const d = new Date(newDate);
+    //   console.log(d);
+    // } catch (error) {
+    //   console.log(error.message);
+    // }
+    console.log(newDate);
+    if (newDate === "Invalid Date") return;
     save("put", `${credentials.api.BASE_URL}/todo/${_toDo._id}`, {
       title: _toDo.title,
       due: newDate,
