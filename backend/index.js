@@ -8,7 +8,7 @@ const cors = require("cors");
 // variables that may need in another import
 
 // default PORT if not provided through env variable
-const PORT = 3001;
+const PORT = process.env.PORT || 3001;
 // express app
 const app = express();
 
@@ -45,21 +45,9 @@ app.use((error, req, res, next) => {
 /* eslint-enable no-unused-vars */
 
 // function to start the server
-function startServer(port) {
-  app.listen(port, () => {
-    console.log(
-      `Server started in ${app.get(
-        "env"
-      )} mode on http://localhost:${port};\n` + `press ctrt + c to terminate.`
-    );
-  });
-}
-
-if (require.main === module) {
-  // this is the top level file that start the server
-  startServer(process.env.PORT || PORT);
-} else {
-  // this module is run through importing by another module
-  // In this case cluster-server.js
-  module.exports = startServer;
-}
+app.listen(PORT, () => {
+  console.log(
+    `Server started in ${app.get("env")} mode on http://localhost:${PORT};\n` +
+      `press ctrt + c to terminate.`
+  );
+});

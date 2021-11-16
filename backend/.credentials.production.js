@@ -1,5 +1,6 @@
 module.exports = {
   mongodb: {
-    connectionString: process.env.MONGODB_CONNECTIONSTRING,
+    connectionString:
+      "mongodb+srv://sellpy:sellpy@cluster0.idfr3.mongodb.net/sellpy-todo?retryWrites=true&w=majority",
   },
 };

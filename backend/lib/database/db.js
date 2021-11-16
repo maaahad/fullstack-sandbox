@@ -70,8 +70,13 @@ TodoList.find((error, todoLists) => {
 // exposing methods from db for CRUD operations
 module.exports = {
   // db access methods related to TodoList
-  getAllTodoList: async () => await TodoList.find({}).populate("todos"),
+  getAllTodoList: async () => await TodoList.find({}),
+
   getTodoListById: async (id) => await TodoList.findById(id).populate("todos"),
+
+  // This following THREE db methods used by handlers that have been by the endpoints that has not
+  // been used so far because of time constraints
+  // Leave this for future extension
   deleteTodoListById: async (id) => await TodoList.findByIdAndDelete(id),
   // initially all TodoList have no todos
   createTodoList: async (title) => await TodoList.create({ title, todos: [] }),
@@ -107,7 +112,7 @@ module.exports = {
       }
     ).populate("todos");
 
-    // every new todo add will have not completed initially
+    // every new todo add is NOT completed initially
     if (updatedTodoList.completed) {
       return await TodoList.findByIdAndUpdate(
         updatedTodoList._id,
@@ -157,8 +162,11 @@ module.exports = {
   },
 
   // db access method  related to Todo
-  createTodo: async (title, due) => await Todo.create({ title, due }),
+  createTodo: async (title, due, completed) =>
+    await Todo.create({ title, due, completed }),
+
   deleteTodoById: async (id) => await Todo.findByIdAndDelete(id),
+
   updateTodoById: async (id, { title, due, completed }) => {
     // in case completed, we need to update the completed property of
     // corresponding todolist

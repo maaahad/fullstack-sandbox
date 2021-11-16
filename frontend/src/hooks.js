@@ -1,61 +1,29 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 
-const useFetch = (method = "get", url, body) => {
-  const [data, setData] = useState();
-  const [error, setError] = useState();
-  const [loading, setLoading] = useState(true);
-
-  const _body = useMemo(
-    () => (typeof body === "string" ? body : JSON.stringify(body)),
-    [body]
-  );
-
-  useEffect(() => {
-    if (!url) return;
-    const headers = {
-      "Content-Type": "application/json",
-    };
-    fetch(url, { method, headers, body: _body })
-      .then((res) => {
-        if (res.status < 200 || res.status > 299) {
-          throw new Error(`API returned with status code ${res.status}`);
-        }
-        return res.json();
-      })
-      .then(setData)
-      .then(() => setLoading(false))
-      .catch(setError);
-  }, [method, url, _body]);
-
-  return { loading, data, error };
-};
-
-const jsonFetch = (method = "get", url, body) => {
-  body = typeof body === "string" ? body : JSON.stringify(body);
-  const headers = {
-    "Content-Type": "application/json",
-  };
-  return fetch(url, { method, headers, body }).then((res) => {
-    if (res.status < 200 || res.status > 299) {
-      throw new Error(`API returned with status code ${res.status}`);
-    }
-    return res.json();
-  });
-};
-
-const useAutoSave = (initialSavingState = "Not saved", initialData = null) => {
+// This object specify different state of auto save
+const SAVING_STATE = Object.freeze({
+  notSaved: "not saved",
+  saving: "saving...",
+  saved: "saved",
+});
+// This hook is used for auto save functionality
+// This method is not optimized yet ...
+const useAutoSave = (
+  initialSavingState = SAVING_STATE.notSaved,
+  initialData = null
+) => {
   const [savingState, setSavingState] = useState(initialSavingState);
   const [data, setData] = useState(initialData);
   const [error, setError] = useState();
   const [timerId, setTimerId] = useState();
 
   const save = useCallback(
-    (method = "get", url, body, propagateToParent = null) => {
+    (method = "get", url, body, propagateChangeToParent = null) => {
       if (!url) return;
       if (timerId) clearTimeout(timerId);
       setTimerId(
         setTimeout(() => {
-          setSavingState("Saving...");
+          setSavingState(SAVING_STATE.saving);
           body = typeof body === "string" ? body : JSON.stringify(body);
           const headers = {
             "Content-Type": "application/json",
@@ -64,11 +32,11 @@ const useAutoSave = (initialSavingState = "Not saved", initialData = null) => {
             .then((res) => res.json())
             .then((jsonData) => {
               setData(jsonData);
-              setSavingState("Saved to DB");
-              propagateToParent && propagateToParent();
+              setSavingState(SAVING_STATE.saved);
+              propagateChangeToParent && propagateChangeToParent();
             })
             .catch((error) => {
-              setSavingState("Not saved");
+              setSavingState(SAVING_STATE.notSaved);
               setError(error);
             });
         }, 1000)
@@ -77,7 +45,7 @@ const useAutoSave = (initialSavingState = "Not saved", initialData = null) => {
     [timerId]
   );
 
-  return [savingState, data, error, setData, save];
+  return [savingState, data, error, save];
 };
 
-export { useFetch, jsonFetch, useAutoSave };
+export { useAutoSave, SAVING_STATE };

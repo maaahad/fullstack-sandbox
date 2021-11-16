@@ -10,11 +10,12 @@ import LocalizationProvider from "@mui/lab/LocalizationProvider";
 import DatePicker from "@mui/lab/DatePicker";
 import DateTimePicker from "@mui/lab/DateTimePicker";
 
-// date-fns
+// date-fns for date formatting
 import { parseISO, formatDistanceToNow } from "date-fns";
 
 // in-house
-import { useAutoSave, jsonFetch } from "../../hooks";
+import { useAutoSave, SAVING_STATE } from "../../hooks";
+import { credentials } from "../../config";
 
 const useStyles = makeStyles((theme) => ({
   todoLine: {
@@ -44,18 +45,9 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-// || move it to separate module
-// function TimeRemaining({ timestamp }) {
-//   let timeRemaining = "";
-//   if (timestamp) {
-//     const date = parseISO(timestamp);
-//     const timeDuration = formatDistanceToNow(date);
-//     timeRemaining = `${timeDuration} remaining`;
-//   }
-
-//   return <span>{timeRemaining}</span>;
-// }
-
+// This method compute the duration to due date relative to NOW
+// And decide whether this toDo is overdued / completed or
+// return the remaining time to finish
 function getTodosDueStatus(dueDate) {
   let status = "";
   if (dueDate) {
@@ -70,44 +62,32 @@ function getTodosDueStatus(dueDate) {
   return status;
 }
 
-// || todo : move this to credentials file
-// Some useful variables
-const BASE_URL_TO_API = "http://localhost:3001/api";
-
 export default function ToDo({
   toDo,
   index,
   onDeleteToDo = (f) => f,
   reFetchToDoLists = (f) => f,
 }) {
-  const [savingState, _toDo, error, setToDo, save] = useAutoSave(
-    "Saved to DB",
+  const [savingState, _toDo, error, save] = useAutoSave(
+    SAVING_STATE.saved,
     toDo
   );
-  // const [_toDo, setToDo] = useState(toDo);
   const classes = useStyles();
   const theme = useTheme();
 
   const onTitleChange = (event) => {
-    // setToDo({ ..._toDo, title: event.target.value });
-    save("put", `${BASE_URL_TO_API}/todo/${_toDo._id}`, {
+    save("put", `${credentials.api.BASE_URL}/todo/${_toDo._id}`, {
       title: event.target.value,
       due: _toDo.due,
       completed: _toDo.completed,
     });
-    // jsonFetch("put", `${BASE_URL_TO_API}/todo/${_toDo._id}`, {
-    //   title: event.target.value,
-    //   due: _toDo.due,
-    //   completed: _toDo.completed,
-    // }).then(setToDo);
   };
 
   const onCompletionCheck = (event) => {
-    // we need to trigger a method from TodoLists to update existing
-    // TodoList in case all todos related to this is done
+    // In this case we need to trigger a method to propagate completion state in ToDoLists
     save(
       "put",
-      `${BASE_URL_TO_API}/todo/${_toDo._id}`,
+      `${credentials.api.BASE_URL}/todo/${_toDo._id}`,
       {
         title: _toDo.title,
         due: _toDo.due,
@@ -115,29 +95,17 @@ export default function ToDo({
       },
       reFetchToDoLists
     );
-    // Need to pass completion check to parent
-    // jsonFetch("put", `${BASE_URL_TO_API}/todo/${_toDo._id}`, {
-    //   title: _toDo.title,
-    //   due: _toDo.due,
-    //   completed: event.target.checked,
-    // })
-    //   .then(setToDo)
-    //   .then(() => onToDoCompletion());
   };
 
   const onDueDateChange = (newDate) => {
-    save("put", `${BASE_URL_TO_API}/todo/${_toDo._id}`, {
+    save("put", `${credentials.api.BASE_URL}/todo/${_toDo._id}`, {
       title: _toDo.title,
       due: newDate,
       completed: _toDo.completed,
     });
-    // jsonFetch("put", `${BASE_URL_TO_API}/todo/${_toDo._id}`, {
-    //   title: _toDo.title,
-    //   due: newDate,
-    //   completed: _toDo.completed,
-    // }).then(setToDo);
   };
 
+  if (error) return <h6>{error.message}</h6>;
   if (!_toDo) return null;
   return (
     <div>
@@ -155,15 +123,13 @@ export default function ToDo({
           className={classes.textField}
           disabled={_toDo.completed}
         />
-        {/* here we have due date */}
         <LocalizationProvider
           dateAdapter={AdapterDateFns}
           className={classes.datePicker}
         >
-          <DateTimePicker
+          <DatePicker
             openTo="year"
             views={["year", "month", "day"]}
-            minDate={new Date("2021-11-01")}
             label="Due date"
             value={_toDo.due}
             onChange={onDueDateChange}
@@ -173,7 +139,6 @@ export default function ToDo({
             disabled={_toDo.completed}
           />
         </LocalizationProvider>
-        {/* here we add information related to time remaining / over dues */}
         <Typography
           align="center"
           variant="subtitle2"
@@ -209,7 +174,7 @@ export default function ToDo({
           color: theme.palette.grey[400],
         }}
       >
-        {savingState === "Saved to DB" && <DoneIcon size="small" />}
+        {savingState === SAVING_STATE.saved && <DoneIcon size="small" />}
         {savingState}
       </Typography>
     </div>

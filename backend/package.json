@@ -7,7 +7,7 @@
     "test": "jest",
     "lint": "eslint index.js config.js lib",
     "dev": "NODE_ENV=development nodemon index.js",
-    "start": "node index.js"
+    "start": "NODE_ENV=production node index.js"
   },
   "author": "Sellpy",
   "license": "ISC",

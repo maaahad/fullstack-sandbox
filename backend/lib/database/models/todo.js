@@ -13,12 +13,6 @@ const todoSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
-  // We don't need this
-  // Frontend can figure it out
-  overdue: {
-    type: Boolean,
-    default: false,
-  },
 });
 
 // Todo model

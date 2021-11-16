@@ -5,10 +5,6 @@ const db = require("./database/db");
 module.exports = {
   // handlers related to TodoList
   getAllTodoList: async (req, res) => {
-    // || need to think about it
-    // res.header("Cache-Control", "no-cache, no-store, must-revalidate");
-    // res.header("Pragma", "no-cache");
-    // res.header("Expires", 0);
     const todoLists = await db.getAllTodoList();
     res.status(200).json(todoLists);
   },
@@ -16,6 +12,10 @@ module.exports = {
     const todoList = await db.getTodoListById(req.params.id);
     res.status(200).json(todoList);
   },
+
+  // This following THREE handlers used by the endpoints that has not
+  // been used so far because of time constraints
+  // Leave this for future extension
   deleteTodoListById: async (req, res) => {
     const deletedTodoList = await db.deleteTodoListById(req.params.id);
     res.status(200).json(deletedTodoList);
@@ -35,8 +35,12 @@ module.exports = {
 
   // handlers related to Todo
   createTodo: async (req, res) => {
-    const todo = await db.createTodo(req.body.title, req.body.due);
-    // || todo : move the logic to db
+    const todo = await db.createTodo(
+      req.body.title,
+      req.body.due,
+      req.body.completed
+    );
+
     // we need to add the todo to the associated todoList
     const updateTodoList = await db.addTodoToTodoList(
       req.params.todoListId,
@@ -47,7 +51,7 @@ module.exports = {
   },
   deleteTodoById: async (req, res) => {
     const deletedTodo = await db.deleteTodoById(req.params.todoId);
-    // || todo : move the logic to db
+
     // we need to delete the todo from the associated todoList
     const updateTodoList = await db.deleteTodoFromTodoList(
       req.params.todoListId,
