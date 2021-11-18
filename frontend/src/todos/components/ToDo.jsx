@@ -101,13 +101,6 @@ export default function ToDo({
   };
 
   const onDueDateChange = (newDate) => {
-    // try {
-    //   const d = new Date(newDate);
-    //   console.log(d);
-    // } catch (error) {
-    //   console.log(error.message);
-    // }
-    console.log(newDate);
     if (newDate === "Invalid Date") return;
     save("put", `${credentials.api.BASE_URL}/todo/${_toDo._id}`, {
       title: _toDo.title,
