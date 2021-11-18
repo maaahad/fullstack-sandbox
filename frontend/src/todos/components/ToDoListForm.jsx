@@ -16,7 +16,7 @@ import ToDo from "./ToDo";
 import { getJSON } from "../../getJSON";
 import { credentials } from "../../config";
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles({
   card: {
     margin: "1rem",
   },
@@ -38,12 +38,11 @@ const useStyles = makeStyles((theme) => ({
     display: "flex",
     flexDirection: "column",
     flexGrow: 1,
-    // update
     "& > * + *": {
       marginTop: "30px",
     },
   },
-}));
+});
 
 export const ToDoListForm = ({
   toDoListId,
@@ -53,7 +52,7 @@ export const ToDoListForm = ({
   const [toDoList, setToDoList] = useState();
   const classes = useStyles();
 
-  // useEffect to fetch the details of todoList
+  // useEffect to fetch the details of todoList using toDoListId
   // toDoListCompleted is added as dependency to trigger refetching the todolist
   // when completed status of toDoList changes
   useEffect(() => {
@@ -62,14 +61,14 @@ export const ToDoListForm = ({
     );
   }, [toDoListCompleted, toDoListId]);
 
-  const addToDo = (event) => {
+  const addToDo = () => {
     getJSON("post", `${credentials.api.BASE_URL}/todo/${toDoList._id}`, {
       title: "",
       due: null,
       completed: false,
     }).then((toDoList) => {
       setToDoList(toDoList);
-      // We need to notify parent to update the completion of this todoList
+      // We need to notify parent (ToDoLists) to update the completion of this todoList
       // in case the todolist is already completed
       reFetchToDoLists();
     });

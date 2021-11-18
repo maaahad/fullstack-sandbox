@@ -8,10 +8,7 @@ import AdapterDateFns from "@mui/lab/AdapterDateFns";
 import LocalizationProvider from "@mui/lab/LocalizationProvider";
 import DatePicker from "@mui/lab/DatePicker";
 
-// date-fns for date formatting
 import { parseISO, formatDistanceToNow } from "date-fns";
-
-// in-house
 import { useAutoSave, SAVING_STATE } from "../../hooks";
 import { credentials } from "../../config";
 
@@ -44,8 +41,8 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 // This method compute the duration to due date relative to NOW
-// And decide whether this toDo is overdued / completed or
-// return the remaining time to finish
+// And decide whether this toDo is overdued / completed
+// Otherwise return the remaining time to finish
 function getTodosDueStatus(dueDate) {
   let status = "";
   try {
@@ -59,7 +56,7 @@ function getTodosDueStatus(dueDate) {
       }
     }
   } catch (error) {
-    status = "no deadline";
+    status = "invalid deadline";
   }
 
   return status;
@@ -101,14 +98,6 @@ export default function ToDo({
   };
 
   const onDueDateChange = (newDate) => {
-    // try {
-    //   const d = new Date(newDate);
-    //   console.log(d);
-    // } catch (error) {
-    //   console.log(error.message);
-    // }
-    console.log(newDate);
-    if (newDate === "Invalid Date") return;
     save("put", `${credentials.api.BASE_URL}/todo/${_toDo._id}`, {
       title: _toDo.title,
       due: newDate,
@@ -158,9 +147,9 @@ export default function ToDo({
           color={
             _toDo.completed
               ? "primary"
-              : getTodosDueStatus(new Date(_toDo.due)) === "overdue"
-              ? "secondary"
-              : ""
+              : getTodosDueStatus(new Date(_toDo.due)).includes("remaining")
+              ? "primary"
+              : "secondary"
           }
         >
           {_toDo.completed

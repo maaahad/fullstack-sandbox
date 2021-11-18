@@ -8,11 +8,9 @@ import ListItemIcon from "@material-ui/core/ListItemIcon";
 import ReceiptIcon from "@material-ui/icons/Receipt";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import Chip from "@material-ui/core/Chip";
-
 import Typography from "@material-ui/core/Typography";
-import { ToDoListForm } from "./ToDoListForm";
 
-// in-house
+import { ToDoListForm } from "./ToDoListForm";
 import { getJSON } from "../../getJSON";
 import { credentials } from "../../config";
 
@@ -47,7 +45,7 @@ export const ToDoLists = ({ style }) => {
               <ListItem
                 key={todolist._id}
                 button
-                onClick={() => setActiveList({ ...todolist })}
+                onClick={() => setActiveList(todolist)}
               >
                 <ListItemIcon>
                   <ReceiptIcon />

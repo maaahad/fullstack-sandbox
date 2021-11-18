@@ -74,32 +74,6 @@ module.exports = {
 
   getTodoListById: async (id) => await TodoList.findById(id).populate("todos"),
 
-  // This following THREE db methods used by handlers that have been by the endpoints that has not
-  // been used so far because of time constraints
-  // Leave this for future extension
-  deleteTodoListById: async (id) => await TodoList.findByIdAndDelete(id),
-  // initially all TodoList have no todos
-  createTodoList: async (title) => await TodoList.create({ title, todos: [] }),
-  updateTodoListById: async (id, title = null, todo = null) => {
-    if (title) {
-      return await TodoList.findByIdAndUpdate(id, { title }, { new: true });
-    } else if (todo) {
-      // first we need to dreate the todo
-      const todo = await Todo.create({
-        title: todo.title,
-        due: todo.due,
-      });
-      // now we add the todo to the corresponding todoList
-      return await TodoList.findByIdAndUpdate(
-        id,
-        {
-          $push: { todos: todo._id },
-        },
-        { new: true }
-      );
-    }
-  },
-
   // a method to add a Todo to a TodoList
   addTodoToTodoList: async (todoListId, todo) => {
     const updatedTodoList = await TodoList.findByIdAndUpdate(

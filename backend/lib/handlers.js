@@ -13,26 +13,6 @@ module.exports = {
     res.status(200).json(todoList);
   },
 
-  // This following THREE handlers used by the endpoints that has not
-  // been used so far because of time constraints
-  // Leave this for future extension
-  deleteTodoListById: async (req, res) => {
-    const deletedTodoList = await db.deleteTodoListById(req.params.id);
-    res.status(200).json(deletedTodoList);
-  },
-  createTodoList: async (req, res) => {
-    const todoList = await db.createTodoList(req.body.title);
-    res.status(200).json(todoList);
-  },
-  updateTodoListById: async (req, res) => {
-    const updatedTodoList = await db.updateTodoListById(
-      req.params.id,
-      req.body.title,
-      req.body.todo
-    );
-    res.status(200).json(updatedTodoList);
-  },
-
   // handlers related to Todo
   createTodo: async (req, res) => {
     const todo = await db.createTodo(
@@ -46,19 +26,19 @@ module.exports = {
       req.params.todoListId,
       todo._id
     );
-    // We return the updated todos list
+    // We return the updated todolist
     res.status(200).json(updateTodoList);
   },
   deleteTodoById: async (req, res) => {
     const deletedTodo = await db.deleteTodoById(req.params.todoId);
 
-    // we need to delete the todo from the associated todoList
+    // we need to delete the todo's _id from the associated todoList
     const updateTodoList = await db.deleteTodoFromTodoList(
       req.params.todoListId,
       deletedTodo
     );
 
-    // We return the updated todos list
+    // We return the updated todoList
     await res.status(200).json(updateTodoList);
   },
   updateTodoById: async (req, res) => {
