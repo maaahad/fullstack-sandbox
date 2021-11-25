@@ -16,22 +16,20 @@ import { credentials } from "../../config";
 
 export const ToDoLists = ({ style }) => {
   const [toDoLists, setToDoLists] = useState([]);
-  const [activeList, setActiveList] = useState();
-
-  useEffect(() => {
-    getJSON("get", `${credentials.api.BASE_URL}/todo-lists`).then(setToDoLists);
-  }, []);
+  const [activeListId, setActiveListId] = useState();
 
   const reFetchToDoLists = () => {
     getJSON("get", `${credentials.api.BASE_URL}/todo-lists`).then(
       (toDoLists) => {
         setToDoLists(toDoLists);
-        setActiveList(
-          toDoLists.find((toDoList) => toDoList._id === activeList._id)
-        );
       }
     );
   };
+
+  useEffect(() => {
+    reFetchToDoLists();
+    // getJSON("get", `${credentials.api.BASE_URL}/todo-lists`).then(setToDoLists);
+  }, []);
 
   if (!toDoLists.length) return null;
   return (
@@ -44,7 +42,7 @@ export const ToDoLists = ({ style }) => {
               <ListItem
                 key={todolist._id}
                 button
-                onClick={() => setActiveList(todolist)}
+                onClick={() => setActiveListId(todolist._id)}
               >
                 <ListItemIcon>
                   <ReceiptIcon />
@@ -65,10 +63,10 @@ export const ToDoLists = ({ style }) => {
         </CardContent>
       </Card>
 
-      {activeList && (
+      {activeListId && (
         <ToDoListForm
-          key={activeList._id} // use key to make React recreate component to reset internal state
-          toDoListId={activeList._id}
+          key={activeListId} // use key to make React recreate component to reset internal state
+          toDoListId={activeListId}
           reFetchToDoLists={reFetchToDoLists}
         />
       )}
