@@ -67,10 +67,7 @@ export default function ToDo({
   onDeleteToDo = (f) => f,
   reFetchToDoLists = (f) => f,
 }) {
-  const [savingState, _toDo, error, save] = useAutoSave(
-    SAVING_STATE.saved,
-    toDo
-  );
+  const [savingState, _toDo, error, save] = useAutoSave(toDo);
   const classes = useStyles();
   const theme = useTheme();
 
