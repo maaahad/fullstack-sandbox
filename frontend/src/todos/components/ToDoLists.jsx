@@ -26,7 +26,6 @@ export const ToDoLists = ({ style }) => {
     getJSON("get", `${credentials.api.BASE_URL}/todo-lists`).then(
       (toDoLists) => {
         setToDoLists(toDoLists);
-        // we update the activeList with new data to trigger useEffect in ToDoListForm
         setActiveList(
           toDoLists.find((toDoList) => toDoList._id === activeList._id)
         );
@@ -51,7 +50,7 @@ export const ToDoLists = ({ style }) => {
                   <ReceiptIcon />
                 </ListItemIcon>
                 <ListItemText primary={todolist.title} />
-                {todolist.completed && (
+                {todolist.todos.every((todo) => todo.completed) && (
                   <Chip
                     label="Completed"
                     color="primary"
@@ -70,7 +69,6 @@ export const ToDoLists = ({ style }) => {
         <ToDoListForm
           key={activeList._id} // use key to make React recreate component to reset internal state
           toDoListId={activeList._id}
-          toDoListCompleted={activeList.completed}
           reFetchToDoLists={reFetchToDoLists}
         />
       )}

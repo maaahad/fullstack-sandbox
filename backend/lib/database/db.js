@@ -70,7 +70,7 @@ TodoList.find((error, todoLists) => {
 // exposing methods from db for CRUD operations
 module.exports = {
   // db access methods related to TodoList
-  getAllTodoList: async () => await TodoList.find({}),
+  getAllTodoList: async () => await TodoList.find({}).populate("todos"),
 
   getTodoListById: async (id) => await TodoList.findById(id).populate("todos"),
 
@@ -86,19 +86,6 @@ module.exports = {
       }
     ).populate("todos");
 
-    // every new todo add is NOT completed initially
-    if (updatedTodoList.completed) {
-      return await TodoList.findByIdAndUpdate(
-        updatedTodoList._id,
-        {
-          completed: false,
-        },
-        {
-          new: true,
-        }
-      ).populate("todos");
-    }
-
     return updatedTodoList;
   },
 
@@ -113,24 +100,6 @@ module.exports = {
         new: true,
       }
     ).populate("todos");
-
-    // if current todoList or deleted todo is completed, we have nothing to do
-
-    if (
-      !updatedTodoList.completed &&
-      !todo.completed &&
-      updatedTodoList.todos.every((todo) => todo.completed)
-    ) {
-      return await TodoList.findByIdAndUpdate(
-        updatedTodoList._id,
-        {
-          completed: true,
-        },
-        {
-          new: true,
-        }
-      ).populate("todos");
-    }
 
     return updatedTodoList;
   },
@@ -155,24 +124,6 @@ module.exports = {
         new: true,
       }
     );
-
-    // in case completed, we need to update the completed property of
-    // corresponding todolist
-    const correspondingTodoList = await TodoList.findOne({
-      todos: { $in: [updatedTodo._id] },
-    }).populate("todos");
-
-    if (correspondingTodoList.todos.every((todo) => todo.completed)) {
-      await TodoList.findByIdAndUpdate(correspondingTodoList._id, {
-        completed: true,
-      });
-    } else {
-      correspondingTodoList.completed &&
-        (await TodoList.findByIdAndUpdate(correspondingTodoList._id, {
-          completed: false,
-        }));
-    }
-
     return updatedTodo;
   },
 };

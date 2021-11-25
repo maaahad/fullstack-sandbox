@@ -44,11 +44,7 @@ const useStyles = makeStyles({
   },
 });
 
-export const ToDoListForm = ({
-  toDoListId,
-  toDoListCompleted,
-  reFetchToDoLists = (f) => f,
-}) => {
+export const ToDoListForm = ({ toDoListId, reFetchToDoLists = (f) => f }) => {
   const [toDoList, setToDoList] = useState();
   const classes = useStyles();
 
@@ -59,7 +55,7 @@ export const ToDoListForm = ({
     getJSON("get", `${credentials.api.BASE_URL}/todo-list/${toDoListId}`).then(
       setToDoList
     );
-  }, [toDoListCompleted, toDoListId]);
+  }, [toDoListId]);
 
   const addToDo = () => {
     getJSON("post", `${credentials.api.BASE_URL}/todo/${toDoList._id}`, {
@@ -91,7 +87,7 @@ export const ToDoListForm = ({
       <CardContent>
         <div className={classes.todolistHeader}>
           <Typography component="h2">{toDoList.title}</Typography>
-          {toDoList.completed && (
+          {/* {toDoList.completed && (
             <Chip
               label="Completed"
               color="primary"
@@ -99,14 +95,13 @@ export const ToDoListForm = ({
               icon={<CheckCircleIcon />}
               variant="outlined"
             />
-          )}
+          )} */}
         </div>
         <form className={classes.form}>
           {toDoList.todos.map((toDo, index) => (
             <ToDo
               key={toDo._id}
               toDo={toDo}
-              index={index}
               onDeleteToDo={deleteTodo}
               reFetchToDoLists={reFetchToDoLists}
             />

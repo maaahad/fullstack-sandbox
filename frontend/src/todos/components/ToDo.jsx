@@ -64,7 +64,6 @@ function getTodosDueStatus(dueDate) {
 
 export default function ToDo({
   toDo,
-  index,
   onDeleteToDo = (f) => f,
   reFetchToDoLists = (f) => f,
 }) {
@@ -109,7 +108,7 @@ export default function ToDo({
   if (!_toDo) return null;
   return (
     <div>
-      <div key={index} className={classes.todoLine}>
+      <div className={classes.todoLine}>
         <Checkbox
           size="small"
           color="primary"
