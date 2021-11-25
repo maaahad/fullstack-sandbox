@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { makeStyles } from "@material-ui/styles";
 import {
   Card,
@@ -44,18 +44,8 @@ const useStyles = makeStyles({
   },
 });
 
-export const ToDoListForm = ({ toDoListId, reFetchToDoLists = (f) => f }) => {
-  const [toDoList, setToDoList] = useState();
+export const ToDoListForm = ({ toDoList, reFetchToDoLists = (f) => f }) => {
   const classes = useStyles();
-
-  // useEffect to fetch the details of todoList using toDoListId
-  // toDoListCompleted is added as dependency to trigger refetching the todolist
-  // when completed status of toDoList changes
-  useEffect(() => {
-    getJSON("get", `${credentials.api.BASE_URL}/todo-list/${toDoListId}`).then(
-      setToDoList
-    );
-  }, [toDoListId]);
 
   const addToDo = () => {
     getJSON("post", `${credentials.api.BASE_URL}/todo/${toDoList._id}`, {
@@ -63,9 +53,6 @@ export const ToDoListForm = ({ toDoListId, reFetchToDoLists = (f) => f }) => {
       due: null,
       completed: false,
     }).then((toDoList) => {
-      setToDoList(toDoList);
-      // We need to notify parent (ToDoLists) to update the completion of this todoList
-      // in case the todolist is already completed
       reFetchToDoLists();
     });
   };
@@ -75,8 +62,6 @@ export const ToDoListForm = ({ toDoListId, reFetchToDoLists = (f) => f }) => {
       "delete",
       `${credentials.api.BASE_URL}/todo/${toDo._id}/${toDoList._id}`
     ).then((toDoList) => {
-      setToDoList(toDoList);
-      // We need to notify parent in case deleted todo was not completed
       reFetchToDoLists();
     });
   };
@@ -87,15 +72,6 @@ export const ToDoListForm = ({ toDoListId, reFetchToDoLists = (f) => f }) => {
       <CardContent>
         <div className={classes.todolistHeader}>
           <Typography component="h2">{toDoList.title}</Typography>
-          {/* {toDoList.completed && (
-            <Chip
-              label="Completed"
-              color="primary"
-              size="small"
-              icon={<CheckCircleIcon />}
-              variant="outlined"
-            />
-          )} */}
         </div>
         <form className={classes.form}>
           {toDoList.todos.map((toDo, index) => (

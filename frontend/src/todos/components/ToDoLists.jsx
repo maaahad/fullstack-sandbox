@@ -66,7 +66,7 @@ export const ToDoLists = ({ style }) => {
       {activeListId && (
         <ToDoListForm
           key={activeListId} // use key to make React recreate component to reset internal state
-          toDoListId={activeListId}
+          toDoList={toDoLists.find((todoList) => todoList._id === activeListId)}
           reFetchToDoLists={reFetchToDoLists}
         />
       )}
